@@ -113,11 +113,6 @@ def get_train_args():
                         type=float,
                         default=0.2,
                         help='Probability of zeroing an activation in dropout layers.')
-    parser.add_argument('--train_word',
-                        type=bool,
-                        default=False,
-                        help='To finetune pretrained Glove word embeddings while training QA model' 
-                        )
     parser.add_argument('--metric_name',
                         type=str,
                         default='F1',
@@ -247,3 +242,8 @@ def add_train_test_args(parser):
                         type=str,
                         default=None,
                         help='Path to load as a model checkpoint.')
+    parser.add_argument('--train_word',
+                        type=bool,
+                        default=False,
+                        help='To finetune pretrained Glove word embeddings while training QA model' 
+                        )
