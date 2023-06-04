@@ -27,8 +27,8 @@ class Embedding(nn.Module):
         super(Embedding, self).__init__()
         self.drop_prob = drop_prob
         
-        self.embed_word = nn.Embedding.from_pretrained(word_vectors)
-        self.proj_word = nn.Linear(word_vectors.size(1), hidden_size, freeze=not train_word, bias=False)
+        self.embed_word = nn.Embedding.from_pretrained(word_vectors, freeze=not train_word, padding_idx=0)
+        self.proj_word = nn.Linear(word_vectors.size(1), hidden_size, bias=False)
         
         self.embed_char = nn.Embedding.from_pretrained(char_vectors, freeze=False, padding_idx=0)
         self.conv_char = nn.Conv1d(char_vectors.size(1), hidden_size, 5)
