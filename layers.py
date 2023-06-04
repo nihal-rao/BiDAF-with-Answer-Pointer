@@ -31,7 +31,7 @@ class Embedding(nn.Module):
         self.proj_word = nn.Linear(word_vectors.size(1), hidden_size, bias=False)
         
         self.embed_char = nn.Embedding.from_pretrained(char_vectors, freeze=False, padding_idx=0)
-        self.conv_char = nn.Conv1D(char_vectors.size(1), hidden_size, 5)
+        self.conv_char = nn.Conv1d(char_vectors.size(1), hidden_size, 5)
         
         self.hwy = HighwayEncoder(2, 2*hidden_size)
 
@@ -49,7 +49,7 @@ class Embedding(nn.Module):
         emb_c = emb_c.view(emb_w.size(0), emb_w.size(1), emb_w.size(2)) # (batch_size, seq_len, hidden_size)
         
         emb = torch.cat([emb_c, emb_w], -1)
-        
+
         emb = self.hwy(emb)   # (batch_size, seq_len, hidden_size)
 
         return emb
