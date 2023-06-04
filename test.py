@@ -40,11 +40,14 @@ def main(args):
     # Get embeddings
     log.info('Loading embeddings...')
     word_vectors = util.torch_from_json(args.word_emb_file)
+    char_vectors = util.torch_from_json(args.char_emb_file)
 
     # Get model
     log.info('Building model...')
     model = BiDAF(word_vectors=word_vectors,
-                  hidden_size=args.hidden_size)
+                  char_vectors=char_vectors,
+                  hidden_size=args.hidden_size,
+                  train_word=args.train_word)
     model = nn.DataParallel(model, gpu_ids)
     log.info(f'Loading checkpoint from {args.load_path}...')
     model = util.load_model(model, args.load_path, gpu_ids, return_step=False)
@@ -101,28 +104,27 @@ def main(args):
             pred_dict.update(idx2pred)
             sub_dict.update(uuid2pred)
 
-    # Log results (except for test set, since it does not come with labels)
-    if args.split != 'test':
-        results = util.eval_dicts(gold_dict, pred_dict, args.use_squad_v2)
-        results_list = [('NLL', nll_meter.avg),
-                        ('F1', results['F1']),
-                        ('EM', results['EM'])]
-        if args.use_squad_v2:
-            results_list.append(('AvNA', results['AvNA']))
-        results = OrderedDict(results_list)
+    
+    results = util.eval_dicts(gold_dict, pred_dict, args.use_squad_v2)
+    results_list = [('NLL', nll_meter.avg),
+                    ('F1', results['F1']),
+                    ('EM', results['EM'])]
+    if args.use_squad_v2:
+        results_list.append(('AvNA', results['AvNA']))
+    results = OrderedDict(results_list)
 
-        # Log to console
-        results_str = ', '.join(f'{k}: {v:05.2f}' for k, v in results.items())
-        log.info(f'{args.split.title()} {results_str}')
+    # Log to console
+    results_str = ', '.join(f'{k}: {v:05.2f}' for k, v in results.items())
+    log.info(f'{args.split.title()} {results_str}')
 
-        # Log to TensorBoard
-        tbx = SummaryWriter(args.save_dir)
-        util.visualize(tbx,
-                       pred_dict=pred_dict,
-                       eval_path=eval_file,
-                       step=0,
-                       split=args.split,
-                       num_visuals=args.num_visuals)
+    # Log to TensorBoard
+    tbx = SummaryWriter(args.save_dir)
+    util.visualize(tbx,
+                    pred_dict=pred_dict,
+                    eval_path=eval_file,
+                    step=0,
+                    split=args.split,
+                    num_visuals=args.num_visuals)
 
     # Write submission file
     sub_path = join(args.save_dir, args.split + '_' + args.sub_file)
