@@ -2,5 +2,7 @@
 .idea/
 __pycache__
 .texpadtmp/
-data/
+data/dev-v2.0.json
+data/train-v2.0.json
+data/test-v2.0.json
 save/

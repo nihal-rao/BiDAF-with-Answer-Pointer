@@ -18,10 +18,10 @@ def get_setup_args():
                         default='https://github.com/chrischute/squad/data/train-v2.0.json')
     parser.add_argument('--dev_url',
                         type=str,
-                        default='https://github.com/chrischute/squad/data/dev-v2.0.json')
+                        default='https://github.com/nihal-rao/squad/data/custom_squad_dev_set.json')
     parser.add_argument('--test_url',
                         type=str,
-                        default='https://github.com/chrischute/squad/data/test-v2.0.json')
+                        default='https://github.com/nihal-rao/squad/data/custom_squad_test_set.json')
     parser.add_argument('--glove_url',
                         type=str,
                         default='http://nlp.stanford.edu/data/glove.840B.300d.zip')
