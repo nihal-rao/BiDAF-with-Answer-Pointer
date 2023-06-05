@@ -70,9 +70,9 @@ def main(args):
                                  log=log)
 
     # Get optimizer and scheduler
-    optimizer = optim.Adadelta(model.parameters(), args.lr,
+    optimizer = optim.Adam(model.parameters(), args.lr,
                                weight_decay=args.l2_wd)
-    scheduler = sched.LambdaLR(optimizer, lambda s: 1.)  # Constant LR
+    scheduler = sched.ExponentialLR(optimizer, 0.99)  # LR Decay
 
     # Get data loader
     log.info('Building dataset...')
@@ -115,7 +115,7 @@ def main(args):
                 loss.backward()
                 nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
                 optimizer.step()
-                scheduler.step(step // batch_size)
+                
                 ema(model, step // batch_size)
 
                 # Log info
@@ -156,6 +156,7 @@ def main(args):
                                    step=step,
                                    split='dev',
                                    num_visuals=args.num_visuals)
+            scheduler.step()
 
 
 def evaluate(model, data_loader, device, eval_file, max_len, use_squad_v2):
