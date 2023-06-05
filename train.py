@@ -70,7 +70,7 @@ def main(args):
                                  log=log)
 
     # Get optimizer and scheduler
-    optimizer = optim.Adam(model.parameters(), args.lr,
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9,
                                weight_decay=args.l2_wd)
     scheduler = sched.ExponentialLR(optimizer, 0.99)  # LR Decay
 
