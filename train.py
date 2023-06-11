@@ -85,7 +85,7 @@ def main(args):
                                  shuffle=False,
                                  num_workers=args.num_workers,
                                  collate_fn=collate_fn)
-    batch = next(iter(train_loader))
+    batch = train_dataset[0]
     print('-------------', batch)
     # Train
     log.info('Training...')
