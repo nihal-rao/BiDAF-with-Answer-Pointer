@@ -95,6 +95,8 @@ def process_file(filename, data_type, word_counter, char_counter):
     total = 0
     with open(filename, "r") as fh:
         source = json.load(fh)
+        if data_type=='train':
+            source['data'] = source['data'][:250]
         for article in tqdm(source["data"]):
             for para in article["paragraphs"]:
                 context = para["context"].replace(
