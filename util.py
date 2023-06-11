@@ -73,9 +73,9 @@ class SQuAD(data.Dataset):
     def __getitem__(self, idx):
         idx = self.valid_idxs[idx]
         example = (torch.from_numpy(np.concatenate([[1], self.context_idxs_memmap[idx]])).long(),
-                   torch.from_numpy(np.concatenate([np.ones(1, self.w_len), self.context_char_idxs_memmap[idx]]), axis=0).long(),
+                   torch.from_numpy(np.concatenate([np.ones((1, self.w_len)), self.context_char_idxs_memmap[idx]], axis=0)).long(),
                    torch.from_numpy(np.concatenate([[1], self.ques_idxs_memmap[idx]])).long(),
-                   torch.from_numpy(np.concatenate([np.ones(1, self.w_len), self.ques_char_idxs_memmap[idx]]), axis=0).long(),
+                   torch.from_numpy(np.concatenate([np.ones((1, self.w_len)), self.ques_char_idxs_memmap[idx]], axis=0)).long(),
                    self.y1s[idx],
                    self.y2s[idx],
                    self.ids[idx])

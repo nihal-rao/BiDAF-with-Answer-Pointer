@@ -85,7 +85,8 @@ def main(args):
                                  shuffle=False,
                                  num_workers=args.num_workers,
                                  collate_fn=collate_fn)
-
+    batch = next(iter(train_loader))
+    print('-------------', batch)
     # Train
     log.info('Training...')
     steps_till_eval = args.eval_steps
