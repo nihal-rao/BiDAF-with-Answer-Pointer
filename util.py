@@ -56,19 +56,12 @@ class SQuAD(data.Dataset):
         self.ques_char_idxs_memmap = np.load('ques_char_idxs.npy', mmap_mode='r')
         self.y1s = torch.from_numpy(obj['y1s']).long()
         self.y2s = torch.from_numpy(obj['y2s']).long()
-
+        batch_size, c_len, w_len = self.context_char_idxs_memmap.shape
+        print('-----------shape of memmapped array is ', batch_size, c_len, w_len)
+        self.w_len = w_len
+        
         if use_v2:
             # SQuAD 2.0: Use index 0 for no-answer token (token 1 = OOV)
-            batch_size, c_len, w_len = self.context_char_idxs_memmap.shape()
-            print('-----------shape of memmapped array is ', batch_size, c_len, w_len)
-            ones = torch.ones((batch_size, 1), dtype=torch.int64)
-            self.context_idxs = torch.cat((ones, self.context_idxs), dim=1)
-            self.question_idxs = torch.cat((ones, self.question_idxs), dim=1)
-
-            ones = torch.ones((batch_size, 1, w_len), dtype=torch.int64)
-            self.context_char_idxs = torch.cat((ones, self.context_char_idxs), dim=1)
-            self.question_char_idxs = torch.cat((ones, self.question_char_idxs), dim=1)
-
             self.y1s += 1
             self.y2s += 1
 
@@ -79,10 +72,10 @@ class SQuAD(data.Dataset):
 
     def __getitem__(self, idx):
         idx = self.valid_idxs[idx]
-        example = (self.context_idxs[idx],
-                   self.context_char_idxs[idx],
-                   self.question_idxs[idx],
-                   self.question_char_idxs[idx],
+        example = (torch.from_numpy(np.concatenate([[1], self.context_idxs_memmap[idx]])).long(),
+                   torch.from_numpy(np.concatenate([np.ones(1, self.w_len), self.context_char_idxs_memmap[idx]]), axis=0).long(),
+                   torch.from_numpy(np.concatenate([[1], self.ques_idxs_memmap[idx]])).long(),
+                   torch.from_numpy(np.concatenate([np.ones(1, self.w_len), self.ques_char_idxs_memmap[idx]]), axis=0).long(),
                    self.y1s[idx],
                    self.y2s[idx],
                    self.ids[idx])
