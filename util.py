@@ -44,17 +44,23 @@ class SQuAD(data.Dataset):
     def __init__(self, data_path, use_v2=True):
         super(SQuAD, self).__init__()
 
-        dataset = np.load(data_path)
-        self.context_idxs = torch.from_numpy(dataset['context_idxs']).long()
-        self.context_char_idxs = torch.from_numpy(dataset['context_char_idxs']).long()
-        self.question_idxs = torch.from_numpy(dataset['ques_idxs']).long()
-        self.question_char_idxs = torch.from_numpy(dataset['ques_char_idxs']).long()
-        self.y1s = torch.from_numpy(dataset['y1s']).long()
-        self.y2s = torch.from_numpy(dataset['y2s']).long()
+        obj = np.load(data_path)
+        obj.zip.extract('context_idxs.npy')
+        obj.zip.extract('context_char_idxs.npy')
+        obj.zip.extract('ques_idxs.npy')
+        obj.zip.extract('ques_char_idxs.npy')
+
+        self.context_idxs_memmap = np.load('context_idxs.npy', mmap_mode='r')
+        self.context_char_idxs_memmap = np.load('context_char_idxs.npy', mmap_mode='r')
+        self.ques_idxs_memmap = np.load('ques_idxs.npy', mmap_mode='r')
+        self.ques_char_idxs_memmap = np.load('ques_char_idxs.npy', mmap_mode='r')
+        self.y1s = torch.from_numpy(obj['y1s']).long()
+        self.y2s = torch.from_numpy(obj['y2s']).long()
 
         if use_v2:
             # SQuAD 2.0: Use index 0 for no-answer token (token 1 = OOV)
-            batch_size, c_len, w_len = self.context_char_idxs.size()
+            batch_size, c_len, w_len = self.context_char_idxs_memmap.shape()
+            print('-----------shape of memmapped array is ', batch_size, c_len, w_len)
             ones = torch.ones((batch_size, 1), dtype=torch.int64)
             self.context_idxs = torch.cat((ones, self.context_idxs), dim=1)
             self.question_idxs = torch.cat((ones, self.question_idxs), dim=1)
@@ -67,7 +73,7 @@ class SQuAD(data.Dataset):
             self.y2s += 1
 
         # SQuAD 1.1: Ignore no-answer examples
-        self.ids = torch.from_numpy(dataset['ids']).long()
+        self.ids = torch.from_numpy(obj['ids']).long()
         self.valid_idxs = [idx for idx in range(len(self.ids))
                            if use_v2 or self.y1s[idx].item() >= 0]
 
