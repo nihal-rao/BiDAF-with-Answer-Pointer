@@ -77,14 +77,14 @@ def main(args):
     train_loader = data.DataLoader(train_dataset,
                                    batch_size=args.batch_size,
                                    shuffle=True,
-                                   num_workers=args.num_workers,
-                                   collate_fn=collate_fn)
+                                   num_workers=args.num_workers,)
+                                #    collate_fn=collate_fn)
     dev_dataset = SQuAD(args.dev_record_file, args.use_squad_v2)
     dev_loader = data.DataLoader(dev_dataset,
                                  batch_size=args.batch_size,
                                  shuffle=False,
-                                 num_workers=args.num_workers,
-                                 collate_fn=collate_fn)
+                                 num_workers=args.num_workers,)
+                                #  collate_fn=collate_fn)
     batch = train_dataset[0]
     print('-------------', batch)
     # Train
