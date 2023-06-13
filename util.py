@@ -49,42 +49,44 @@ class SQuAD(data.Dataset):
         obj.zip.extract('context_char_idxs.npy')
         obj.zip.extract('ques_idxs.npy')
         obj.zip.extract('ques_char_idxs.npy')
+        obj.zip.extract('y1s.npy')
+        obj.zip.extract('y2s.npy')
+        obj.zip.extract('ids.npy')
 
         self.context_idxs_memmap = np.load('context_idxs.npy', mmap_mode='r')
         self.context_char_idxs_memmap = np.load('context_char_idxs.npy', mmap_mode='r')
         self.ques_idxs_memmap = np.load('ques_idxs.npy', mmap_mode='r')
         self.ques_char_idxs_memmap = np.load('ques_char_idxs.npy', mmap_mode='r')
-        self.y1s = torch.from_numpy(obj['y1s']).long()
-        self.y2s = torch.from_numpy(obj['y2s']).long()
+        self.y1s = np.load('y1s.npy', mmap_mode='r')
+        self.y2s = np.load('y2s.npy', mmap_mode='r')
         batch_size, c_len, w_len = self.context_char_idxs_memmap.shape
         print('-----------shape of memmapped array is ', batch_size, c_len, w_len)
         self.w_len = w_len
         
-        if use_v2:
+        # if use_v2:
             # SQuAD 2.0: Use index 0 for no-answer token (token 1 = OOV)
-            self.y1s += 1
-            self.y2s += 1
+            # self.y1s += 1
+            # self.y2s += 1
 
         # SQuAD 1.1: Ignore no-answer examples
-        self.ids = torch.from_numpy(obj['ids']).long()
-        self.valid_idxs = [idx for idx in range(len(self.ids))
-                           if use_v2 or self.y1s[idx].item() >= 0]
+        self.ids = np.load('ids.npy', mmap_mode='r')
+        # self.valid_idxs = [idx for idx in range(self.ids.shape[0])
+        #                    if use_v2 or self.y1s[idx].item() >= 0]
 
     def __getitem__(self, idx):
-        idx = self.valid_idxs[idx]
+        # idx = self.valid_idxs[idx]
         example = (torch.from_numpy(np.concatenate([[1], self.context_idxs_memmap[idx]])).long(),
                    torch.from_numpy(np.concatenate([np.ones((1, self.w_len)), self.context_char_idxs_memmap[idx]], axis=0)).long(),
                    torch.from_numpy(np.concatenate([[1], self.ques_idxs_memmap[idx]])).long(),
                    torch.from_numpy(np.concatenate([np.ones((1, self.w_len)), self.ques_char_idxs_memmap[idx]], axis=0)).long(),
-                   self.y1s[idx],
-                   self.y2s[idx],
-                   self.ids[idx])
+                   torch.tensor(self.y1s[idx]+1).long(),
+                   torch.tensor(self.y2s[idx]+1).long(),
+                   torch.tensor(self.ids[idx]).long())
 
         return example
 
     def __len__(self):
-        return len(self.valid_idxs)
-
+        return self.ids.shape[0]
 
 def collate_fn(examples):
     """Create batch tensors from a list of individual examples returned
