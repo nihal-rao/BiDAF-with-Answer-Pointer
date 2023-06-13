@@ -23,21 +23,36 @@ class Embedding(nn.Module):
         hidden_size (int): Size of hidden activations.
         drop_prob (float): Probability of zero-ing out activations
     """
-    def __init__(self, word_vectors, hidden_size, drop_prob):
+    def __init__(self, word_vectors, char_vectors, hidden_size, drop_prob, train_word):
         super(Embedding, self).__init__()
         self.drop_prob = drop_prob
-        self.embed = nn.Embedding.from_pretrained(word_vectors)
-        self.proj = nn.Linear(word_vectors.size(1), hidden_size, bias=False)
-        self.hwy = HighwayEncoder(2, hidden_size)
+        
+        self.embed_word = nn.Embedding.from_pretrained(word_vectors)
+        self.proj_word = nn.Linear(word_vectors.size(1), hidden_size, bias=False)
+        
+        self.embed_char = nn.Embedding.from_pretrained(char_vectors, freeze=False, padding_idx=0)
+        self.conv_char = nn.Conv1d(char_vectors.size(1), hidden_size, 5, bias=False)
+        
+        self.hwy = HighwayEncoder(2, 2*hidden_size)
 
-    def forward(self, x):
-        emb = self.embed(x)   # (batch_size, seq_len, embed_size)
-        emb = F.dropout(emb, self.drop_prob, self.training)
-        emb = self.proj(emb)  # (batch_size, seq_len, hidden_size)
+    def forward(self, w, c): #MODIFY HERE
+        emb_w = self.embed_word(w)   # (batch_size, seq_len, embed_size)
+        emb_w = F.dropout(emb_w, self.drop_prob, self.training)
+        emb_w = self.proj_word(emb_w)  # (batch_size, seq_len, hidden_size)
+        
+        emb_c = self.embed_char(c) # (batch_size, seq_len, word_size, embed_size)
+        emb_c = F.dropout(emb_c, self.drop_prob, self.training)
+        emb_c = torch.permute(emb_c, (0,1,3,2)) # (batch_size, seq_len, embed_size, word_size)
+        emb_c = emb_c.view(-1, emb_c.size(2), emb_c.size(3)) # (batch_size*seq_len, embed_size, word_size)
+        emb_c = self.conv_char(emb_c)
+        emb_c = F.max_pool1d(emb_c, emb_c.size(2)) # (batch_size*seq_len, hidden_size, 1)
+        emb_c = emb_c.view(emb_w.size(0), emb_w.size(1), emb_w.size(2)) # (batch_size, seq_len, hidden_size)
+        
+        emb = torch.cat([emb_c, emb_w], -1)
+
         emb = self.hwy(emb)   # (batch_size, seq_len, hidden_size)
 
         return emb
-
 
 class HighwayEncoder(nn.Module):
     """Encode an input sequence using a highway network.
