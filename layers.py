@@ -235,3 +235,41 @@ class BiDAFOutput(nn.Module):
         log_p2 = masked_softmax(logits_2.squeeze(), mask, log_softmax=True)
 
         return log_p1, log_p2
+
+
+class AnswerPointer(nn.Module):
+    """Output layer used by BiDAF for question answering.
+
+    Computes a linear transformation of the attention and modeling
+    outputs, then takes the softmax of the result to get the start pointer.
+    A bidirectional LSTM is then applied the modeling output to produce `mod_2`.
+    A second linear+softmax of the attention output and `mod_2` is used
+    to get the end pointer.
+
+    Args:
+        hidden_size (int): Hidden size used in the BiDAF model.
+        drop_prob (float): Probability of zero-ing out activations.
+    """
+    def __init__(self, hidden_size, drop_prob):
+        super(AnswerPointer, self).__init__()
+        self.V_att = nn.Linear(8 * hidden_size, hidden_size)
+        self.V_mod = nn.Linear(2 * hidden_size, hidden_size)
+        
+        self.start_layer = nn.Linear(hidden_size, 1)
+        self.end_layer = nn.Linear(hidden_size, 1)
+        self.h_proj = nn.Linear(hidden_size, 1)
+        
+        self.ans_lstm = nn.LSTMCell(hidden_size, hidden_size)
+
+    def forward(self, att, mod, mask):
+        # Shapes: (batch_size, seq_len, 1)
+        inp_rep = self.V_att(att) + self.V_mod(mod) # batch_size, seq_len, hidden_size
+        beta_s = F.softmax(self.start_layer(inp_rep)) # batch_size, seq_len
+        h_1, _ = self.ans_lstm(inp_rep)
+        beta_e = F.softmax(self.end_layer(inp_rep) + self.h_proj(h_1))
+
+        # Shapes: (batch_size, seq_len)
+        log_p1 = masked_softmax(beta_s.squeeze(), mask, log_softmax=True)
+        log_p2 = masked_softmax(beta_e.squeeze(), mask, log_softmax=True)
+
+        return log_p1, log_p2
