@@ -116,7 +116,6 @@ def main(args):
                 loss.backward()
                 nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
                 optimizer.step()
-                scheduler.step(step // batch_size)
                 ema(model, step // batch_size)
 
                 # Log info
@@ -157,6 +156,7 @@ def main(args):
                                    step=step,
                                    split='dev',
                                    num_visuals=args.num_visuals)
+        scheduler.step()
 
 
 def evaluate(model, data_loader, device, eval_file, max_len, use_squad_v2):
