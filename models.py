@@ -49,7 +49,7 @@ class BiDAF(nn.Module):
                                      num_layers=2,
                                      drop_prob=drop_prob)
 
-        self.out = layers.BiDAFOutput(hidden_size=hidden_size,
+        self.out = layers.AnswerPointer(hidden_size=hidden_size,
                                       drop_prob=drop_prob)
 
     def forward(self, cw_idxs, cc_idxs, qw_idxs, qc_idxs):
