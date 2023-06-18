@@ -263,13 +263,26 @@ class AnswerPointer(nn.Module):
 
     def forward(self, att, mod, mask):
         # Shapes: (batch_size, seq_len, 1)
+        # print('mod ', mod.size())
+        seq_len = mod.size(1)
         inp_rep = self.V_att(att) + self.V_mod(mod) # batch_size, seq_len, hidden_size
-        beta_s = F.softmax(self.start_layer(inp_rep)) # batch_size, seq_len
-        h_1, _ = self.ans_lstm(inp_rep)
-        beta_e = F.softmax(self.end_layer(inp_rep) + self.h_proj(h_1))
-
+        # print('inp_rep', inp_rep.size())
+        # print('mask ', mask.size())
+        
+        start_rep = self.start_layer(inp_rep)
+        # print('start_rep ',start_rep.size())
+        
+        beta_s = masked_softmax(start_rep.squeeze(-1), mask) # batch_size, seq_len
+        # print('beta_s', beta_s.size())
+        lstm_inp = torch.bmm(inp_rep.permute(0,2,1), beta_s.unsqueeze(-1)).squeeze(-1)
+        # print('lstm inp', lstm_inp.size())
+        h_1, _ = self.ans_lstm(lstm_inp)
+        # print('h_1', h_1.size())
+        
         # Shapes: (batch_size, seq_len)
-        log_p1 = masked_softmax(beta_s.squeeze(), mask, log_softmax=True)
-        log_p2 = masked_softmax(beta_e.squeeze(), mask, log_softmax=True)
+        log_p1 = masked_softmax(start_rep.squeeze(-1), mask, log_softmax=True)
+        log_p2 = masked_softmax(self.end_layer(inp_rep).squeeze(-1) + self.h_proj(h_1), mask, log_softmax=True)
+        # print('log_p1', log_p1.size())
+        # print('log_p2', log_p2.size())
 
         return log_p1, log_p2
