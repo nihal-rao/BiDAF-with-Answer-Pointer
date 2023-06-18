@@ -252,6 +252,7 @@ class AnswerPointer(nn.Module):
     """
     def __init__(self, hidden_size, drop_prob):
         super(AnswerPointer, self).__init__()
+        self.drop_prob=drop_prob
         self.V_att = nn.Linear(8 * hidden_size, hidden_size)
         self.V_mod = nn.Linear(2 * hidden_size, hidden_size)
         
@@ -281,7 +282,7 @@ class AnswerPointer(nn.Module):
         
         # Shapes: (batch_size, seq_len)
         log_p1 = masked_softmax(start_rep.squeeze(-1), mask, log_softmax=True)
-        log_p2 = masked_softmax(self.end_layer(inp_rep).squeeze(-1) + self.h_proj(h_1), mask, log_softmax=True)
+        log_p2 = masked_softmax(self.end_layer(inp_rep).squeeze(-1) + self.h_proj(F.dropout(h_1, self.drop_prob, self.training)), mask, log_softmax=True)  
         # print('log_p1', log_p1.size())
         # print('log_p2', log_p2.size())
 
