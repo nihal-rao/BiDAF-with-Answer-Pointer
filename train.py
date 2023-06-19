@@ -71,7 +71,7 @@ def main(args):
     # Get optimizer and scheduler
     optimizer = optim.Adadelta(model.parameters(), args.lr,
                                weight_decay=args.l2_wd)
-    scheduler = sched.StepLR(optimizer, step_size=40, gamma=0.5)  # Constant LR
+    scheduler = sched.CosineAnnealingLR(optimizer, args.num_epochs, eta_min=0.01)
 
     # Get data loader
     log.info('Building dataset...')
