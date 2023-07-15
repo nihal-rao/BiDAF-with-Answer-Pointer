@@ -1,8 +1,18 @@
 # BiDAF with Answer-Pointer networks
-An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with character level embeddings) for reading comprehension on the SqUAD v2 dataset. Also implemented an Answer Pointer network as per [Match-LSTM and Answer Pointer](https://arxiv.org/abs/1608.07905) to predict the final answer span. 
+An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with character level embeddings) for reading comprehension on the SqUAD v2 dataset. Also implemented an Answer Pointer network as per [Match-LSTM and Answer Pointer](https://arxiv.org/abs/1608.07905) to predict the final answer span. Achieves <> on the test data.
 
 ## Introduction
+* Reading comprehension is a task in which a text passage (also called the context) is used to answer questions.
+* The answers are a span (continous subsequence) of the context itself. Thus the model predicts start and end indices of the answer in the context.
+* New to SQuAD v2, some questions are unanswerable ie., the context is insufficient to answer the question. The avgNA score of the model is the classification accuracy of the model in identifying such questions.
+* This implementation uses the BiDAF model, with an Answer Pointer network as the predictor head instead of the Output layer (as shown below).
+  
+  ![](/images/bidaf-image.png)
 
+* The answer pointer network predicts the end index conditioned on the start index of the answer.
+* This is achieved by using the predicted start index probabilities as attention weights over the context.
+* The aggregrated features are then used to predict the end position.
+  
 ## Implementation details
 * Only 325 of the total 442 articles in the SQuAD training dataset are used due to memory constraints.
 * The answer pointer head uses dropout on the projected start pointer representation.
@@ -14,25 +24,8 @@ An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with c
 
 ## Usage
 
-1. Make sure you have [Miniconda](https://conda.io/docs/user-guide/install/index.html#regular-installation) installed
-    1. Conda is a package manager that sandboxes your project’s dependencies in a virtual environment
-    2. Miniconda contains Conda and its dependencies with no extra packages by default (as opposed to Anaconda, which installs some extra packages)
+* ```setup.py``` downloads and preprocesses the data.
+* train.ipynb contains the training and logging code.
 
-2. cd into src, run `conda env create -f environment.yml`
-    1. This creates a Conda environment called `squad`
-
-3. Run `conda activate squad`
-    1. This activates the `squad` environment
-    2. Do this each time you want to write/test your code
-  
-4. Run `python setup.py`
-    1. This downloads SQuAD 2.0 training and dev sets, as well as the GloVe 300-dimensional word vectors (840B)
-    2. This also pre-processes the dataset for efficient data loading
-    3. For a MacBook Pro on the Stanford network, `setup.py` takes around 30 minutes total  
-
-5. Browse the code in `train.py`
-    1. The `train.py` script is the entry point for training a model. It reads command-line arguments, loads the SQuAD dataset, and trains a model.
-    2. You may find it helpful to browse the arguments provided by the starter code. Either look directly at the `parser.add_argument` lines in the source code, or run `python train.py -h`.
-
-## References
-    
+## Acknowledgements
+* This repository uses the boilerplate code provided as part of the final project handout of the [Stanford CS224n : NLP with deep learning](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1214/) course.
