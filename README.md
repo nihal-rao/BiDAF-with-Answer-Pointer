@@ -20,7 +20,7 @@ An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with c
 * Hidden vectors in the BiDAF model are of 100 dimensions.
 * Comparison of dev dataset negative log likelihood loss for this implementation (green) vs baseline model (blue)
 
- ![](/images/bidaf-image.png)
+ ![](/images/nll.png)
 
 ## Usage
 
