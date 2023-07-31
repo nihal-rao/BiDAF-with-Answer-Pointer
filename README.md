@@ -25,7 +25,7 @@ An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with c
 ## Usage
 
 * ```setup.py``` downloads and preprocesses the data.
-* ```train.ipynb``` contains the training and logging code (Trained using kaggle gpu resources).
+* ```training_run.ipynb``` contains the training and logging code (Trained using kaggle gpu resources).
 
 ## Acknowledgements
 * This repository uses the boilerplate code provided as part of the final project handout of the [Stanford CS224n : NLP with deep learning](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1214/) course.
