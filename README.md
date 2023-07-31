@@ -15,6 +15,7 @@ An implementation of the [BiDAF](https://arxiv.org/abs/1611.01603) paper (with c
   
 ## Implementation details
 * Only 325 of the total 442 articles in the SQuAD training dataset are used due to memory constraints.
+* 64-D character embeddings are aggregrated using a 1-D convolutional filter of width 5 and stride 1. 
 * The answer pointer head uses dropout on the projected start pointer representation.
 * A cosine learning rate scheduler is used.
 * Hidden vectors in the BiDAF model are of 100 dimensions.
