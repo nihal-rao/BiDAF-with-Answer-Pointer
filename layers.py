@@ -155,6 +155,7 @@ class BiDAFAttention(nn.Module):
         b = torch.bmm(torch.bmm(s1, s2.transpose(1, 2)), c)
 
         x = torch.cat([c, a, c * a, c * b], dim=2)  # (bs, c_len, 4 * hid_size)
+        just for fun
 
         return x
 
